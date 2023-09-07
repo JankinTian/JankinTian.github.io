@@ -2,12 +2,9 @@
 layout: post
 title:  Heterogeneous Graph Transformer
 date:   2020-03-20 10:18:54
-categories: 论文解读
-tags:    Graph Transformer www 2020年
+description: 论文解读
+tags:    Graph Transformer 
 ---
-
-* content
-{:toc}
 
 ----------
 ## 摘要
