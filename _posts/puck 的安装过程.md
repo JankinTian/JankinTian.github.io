@@ -1,0 +1,93 @@
+---
+layout: post
+title: " puck 的安装过程"
+date: 2023-09-06 
+description: " puck 的安装过程"
+tag: c++ 向量数据库 puck
+---  
+# puck 的安装过程
+
+## 安装 MKL
+mkl地址：[https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-download.html](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-download.html)
+选择安装环境和安装方式
+本人选择的是 `Linux` `APT Package Manager`
+```shell
+# 1.
+wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+| gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+
+# 2.
+echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+
+# 3.
+sudo apt update
+
+# 4.
+sudo apt install intel-oneapi-mkl       # 可能没有 mkl.h 文件
+sudo apt install intel-mkl
+
+# 5. 安装系统环境
+source /opt/intel/oneapi/mkl/latest/env/vars.sh
+
+```
+
+### Error: Could NOT find Python3 (missing: Python3_INCLUDE_DIRS Development)
+ - 错误描述
+```
+CMake Error at /usr/local/share/cmake-3.26/Modules/FindPackageHandleStandardArgs.cmake:230 (message):
+  Could NOT find Python3 (missing: Python3_INCLUDE_DIRS Development
+  Development.Module Development.Embed) (found suitable version "3.10.12",
+  minimum required is "3.6")
+Call Stack (most recent call first):
+  /usr/local/share/cmake-3.26/Modules/FindPackageHandleStandardArgs.cmake:600 (_FPHSA_FAILURE_MESSAGE)
+  /usr/local/share/cmake-3.26/Modules/FindPython/Support.cmake:3766 (find_package_handle_standard_args)
+  /usr/local/share/cmake-3.26/Modules/FindPython3.cmake:551 (include)
+  CMakeLists.txt:48 (find_package)
+```
+
+- 解决策略
+```shell
+sudo apt-get install python3-dev
+```
+
+### Error: Could NOT find SWIG (missing: SWIG_EXECUTABLE SWIG_DIR)
+- 错误描述
+```
+CMake Error at /usr/local/share/cmake-3.26/Modules/FindPackageHandleStandardArgs.cmake:230 (message):
+  Could NOT find SWIG (missing: SWIG_EXECUTABLE SWIG_DIR)
+Call Stack (most recent call first):
+  /usr/local/share/cmake-3.26/Modules/FindPackageHandleStandardArgs.cmake:600 (_FPHSA_FAILURE_MESSAGE)
+  /usr/local/share/cmake-3.26/Modules/FindSWIG.cmake:153 (find_package_handle_standard_args)
+  pyapi_wrapper/CMakeLists.txt:3 (find_package)
+
+```
+- 解决策略
+```shell
+sudo apt install swig
+swig -version
+```
+
+### mkl.h not find
+- 错误描述
+```
+CMake Error: The following variables are used in this project, but they are set to NOTFOUND.
+Please set them or make sure they are set and tested correctly in the CMake files:
+MKL_H
+```
+- 原因分析
+```makefile
+find_path(MKL_H mkl.h
+  HINTS ${MKLROOT}
+  PATH_SUFFIXES include)
+INCLUDE_DIRECTORIES(${MKL_H})
+```
+通过上述的命令可以看出在`MKLROOT`中查找`mkl.h`文件
+
+- 解决方法
+```
+vim .bashrc
+
+export MKLROOT = /usr/include/mkl
+
+source .bashrc
+```
